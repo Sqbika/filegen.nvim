@@ -42,13 +42,9 @@ local function is_module_loaded(package_name, lsp_names)
   return true
 end
 
----@param state table
-function M.generate_from_template(state)
-  local node = state.tree:get_node()
-  if not node or node.type == "message" then
-    return
-  end
-
+---@param path string
+---@param done_callback function
+function M.generate_from_template(path, done_callback)
   local templates = {}
 
   local function add_template(name, type)
@@ -78,11 +74,10 @@ function M.generate_from_template(state)
   end
 
   picker.open_picker(config.config, templates, function (value)
-    vim.notify(vim.inspect(value))
+    --vim.notify(vim.inspect(value))
     if value.type:gmatch("^custom_template_") then
       local ctemplates = custom_template.get_template_files(value)
 
-      vim.notify("files: " .. vim.inspect(ctemplates))
       if ctemplates == nil then
         return
       end
@@ -92,11 +87,21 @@ function M.generate_from_template(state)
           return
         end
 
-        --TODO Prompt for FileName
-        --Create file
-        --Copy over Template content
-        --Init template placeholder replacement
-        vim.notify("Custom Template picked: " .. value.name)
+        local filename = vim.fn.input("Filename")
+        if filename == "" then
+          return
+        end
+
+        local fullpath = path .. "/" .. filename
+
+        local template_path = value.type:gsub("^ct_path:", "")
+        local template_content = vim.fn.readfile(template_path)
+        vim.fn.writefile(template_content, fullpath)
+
+        vim.cmd("edit " .. vim.fn.fnameescape(fullpath))
+
+        done_callback()
+        --TODO Init template placeholder replacement
       end)
 
       return
@@ -113,7 +118,19 @@ function M.setup(opts)
 
   --#region Builtin Pickers
   require("filegen.pickers.telescope").register()
-  --
+  --TODO Reimplement this in a sane way. Does not work anyway ugh
+  --[[
+  if package.loaded["telescope"] ~= nil then
+    require("filegen.pickers.telescope").register()
+  else
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "LazyLoad telescope.nvim",
+      callback = function ()
+        require("filegen.pickers.telescope").register()
+      end
+    })
+  end
+  ]]--
 end
 
 return M

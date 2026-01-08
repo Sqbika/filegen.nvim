@@ -9,7 +9,9 @@ A file generator plugin that uses user defined .template and LSP based generatio
     * Not found? Create your own in a .template or define a generation strategy
 
 # Roadmap (unordered)
-* [ ] Generate simple files from .template
+* [x] Generate simple files from .template
+  * [x] Source .template files from `$(NVIM_CONFIG)/templates`
+  * [ ] Source .template files from `$PROJECT_ROOT/.templates` ?
 * [ ] Implement LSP based modules
 * [ ] Implement Custom module registry
 * [ ] Implement .template file templating

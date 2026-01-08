@@ -47,10 +47,12 @@ end
 function M.register()
   local picker = require("filegen.handler.picker")
 
-  picker.register_picker({
-    name = "telescope",
-    fn_open = open_picker
-  })
+  if not picker.is_picker_registered("telescope") then
+    picker.register_picker({
+      name = "telescope",
+      fn_open = open_picker
+    })
+  end
 end
 
 return M

@@ -63,7 +63,7 @@ function M.get_template_files(type)
         ---@type TemplateType
         table.insert(types, {
           name = v.name,
-          type = "ct_path:"
+          type = "ct_path:" .. v.path
         })
       end
       return types

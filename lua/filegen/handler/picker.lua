@@ -3,6 +3,17 @@ local registered_pickers = {}
 
 local M = {}
 
+---@param name string
+---@return boolean
+function M.is_picker_registered(name)
+  for _, v in ipairs(registered_pickers) do
+    if v.name == name then
+      return true
+    end
+  end
+  return false
+end
+
 ---@param picker RegisteredPicker
 function M.register_picker(picker)
   for k, v in ipairs(registered_pickers) do
