@@ -1,31 +1,9 @@
 ---@diagnostic disable: unused-function, unused-local
 local picker = require("filegen.handler.picker")
 local config = require("filegen.config")
+local custom_template = require("filegen.handler.custom_template")
 
 local M = {}
-
----@return table
-local function get_all_custom_templates()
-  local base_path = vim.fn.stdpath("config") .. "/templates"
-  local templates = {}
-
-  for template_type, outer_type in vim.fs.dir(base_path) do
-    if outer_type == "directory" then
-      local type_template = {}
-      --TODO: Add recursive search here
-      for filepath, type in vim.fs.dir(base_path .. "/" .. template_type) do
-        if type == "file" then
-          type_template = vim.tbl_deep_extend("force", type_template, {
-            name = filepath:gsub("%.template$", ""),
-            path = base_path .. "/" .. template_type .. "/" .. filepath
-          })
-        end
-      end
-      templates[template_type] = type_template
-    end
-  end
-  return templates
-end
 
 ---@param lsp_names string[]
 local function is_lsp_loaded(lsp_names)
@@ -80,15 +58,7 @@ function M.generate_from_template(state)
     })
   end
 
-  local pt_templates = get_all_custom_templates()
-  if next(pt_templates) ~= nil then
-    for key, value in pairs(pt_templates) do
---      vim.notify("Key: ".. key .. "\n Value: " .. vim.inspect(value))
-      add_template(key, "custom_template_" .. key)
-    end
-  else
-    vim.notify("No Custom Templates found")
-  end
+  templates = vim.tbl_extend("force", templates, custom_template.get_template_types())
 
   if is_module_loaded(nil, { "kotlin_language_server", "kotlin_lsp" }) then
     add_template("Kotlin", "kt")
@@ -108,6 +78,30 @@ function M.generate_from_template(state)
   end
 
   picker.open_picker(config.config, templates, function (value)
+    vim.notify(vim.inspect(value))
+    if value.type:gmatch("^custom_template_") then
+      local ctemplates = custom_template.get_template_files(value)
+
+      vim.notify("files: " .. vim.inspect(ctemplates))
+      if ctemplates == nil then
+        return
+      end
+
+      picker.open_picker(config.config, ctemplates, function (value)
+        if not value.type:gmatch("^ct_path:") then
+          return
+        end
+
+        --TODO Prompt for FileName
+        --Create file
+        --Copy over Template content
+        --Init template placeholder replacement
+        vim.notify("Custom Template picked: " .. value.name)
+      end)
+
+      return
+    end
+
     vim.notify("callback")
     vim.notify(vim.inspect(value))
   end)

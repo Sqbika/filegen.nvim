@@ -6,6 +6,7 @@ local conf = require("telescope.config").values
 
 local M = {}
 
+--TODO Refactor into PickerOptions
 ---@param rows TemplateTypes
 ---@param callback SelectionCallback
 local function open_picker(rows, callback)
@@ -13,7 +14,7 @@ local function open_picker(rows, callback)
     attach_mappings = function(prompt_bufnr, _)
       actions.select_default:replace(function()
         actions.close(prompt_bufnr)
-        callback(action_state.get_selected_entry())
+        callback(action_state.get_selected_entry().value)
       end)
       return true
     end
