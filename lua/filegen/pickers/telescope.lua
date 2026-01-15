@@ -7,7 +7,7 @@ local conf = require("telescope.config").values
 local M = {}
 
 --TODO Refactor into PickerOptions
----@param rows TemplateTypes
+---@param rows PickElementTypes 
 ---@param callback SelectionCallback
 local function open_picker(rows, callback)
   local opts = require("telescope.themes").get_dropdown {
@@ -29,7 +29,7 @@ local function open_picker(rows, callback)
     prompt_title = "Select template Category",
     finder = finders.new_table({
       results = rows,
-      ---@param entry TemplateType
+      ---@param entry PickElementType
       entry_maker = function(entry)
         return {
           value = entry,

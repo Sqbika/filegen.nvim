@@ -28,7 +28,7 @@ function M.register_picker(picker)
 end
 
 ---@param opts FilegenConfig
----@param rows TemplateTypes
+---@param rows PickElementTypes 
 ---@param selection_callback SelectionCallback
 function M.open_picker(opts, rows, selection_callback)
   local picker = (opts and opts.picker) or "auto"

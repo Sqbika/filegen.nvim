@@ -26,9 +26,9 @@ local function get_all_custom_templates()
   return templates
 end
 
----@return TemplateTypes
+---@return PickElementType
 function M.get_template_types()
-  ---@type TemplateTypes
+  ---@type PickElementTypes
   local templates = {}
 
   local pt_templates = get_all_custom_templates()
@@ -36,7 +36,11 @@ function M.get_template_types()
     for key, _ in pairs(pt_templates) do
       table.insert(templates, {
         name = key,
-        type = "custom_template_" .. key
+        type = "custom_template",
+        opts = {
+          type = "folder",
+          value = key
+        }
       })
     end
   end
@@ -44,11 +48,11 @@ function M.get_template_types()
   return templates
 end
 
----@param type TemplateType
----@return TemplateTypes?
+---@param type PickElementType
+---@return PickElementType?
 function M.get_template_files(type)
   local pt_templates = get_all_custom_templates()
-  local typeStr = type.type:gsub("^custom_template_", "")
+  local typeStr = type.opts.value
 
   if next(pt_templates) == nil then
     return nil
@@ -57,13 +61,16 @@ function M.get_template_files(type)
   for key, value in pairs(pt_templates) do
     if key == typeStr then
       --TODO This is stupid
-      ---@type TemplateTypes
+      ---@type PickElementTypes
       local types = {}
-      for _,v in ipairs(value) do
-        ---@type TemplateType
+      for _, v in ipairs(value) do
+        ---@type PickElementType
         table.insert(types, {
           name = v.name,
-          type = "ct_path:" .. v.path
+          type = "custom_template",
+          opts = {
+            path = v.path
+          },
         })
       end
       return types
@@ -74,5 +81,26 @@ function M.get_template_files(type)
   return nil
 end
 
-return M
+---@param template PickElementType
+---@param target_path string Path where template should be generated
+function M.open_template(template, target_path)
+  if (template.type ~= "custom_template") or template.opts == nil or template.opts.path == nil then
+    vim.notify("Invalid custom template invocation: Not path selection", vim.log.levels.WARN)
+    return
+  end
 
+  local filename = vim.fn.input("Filename")
+  if filename == "" then
+    return
+  end
+
+  local fullpath = target_path .. "/" .. filename
+
+  local template_path = template.opts.path
+  local template_content = vim.fn.readfile(template_path)
+  vim.fn.writefile(template_content, fullpath)
+
+  vim.cmd("edit " .. vim.fn.fnameescape(fullpath))
+end
+
+return M
